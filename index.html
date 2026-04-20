@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delicias da Tia Néa</title>
+    <title>Cachorro Quente do Pará</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#b91c1c">
     <link rel="apple-touch-icon" href="app/src/main/res/drawable/logo.png">
@@ -80,9 +80,9 @@
     <header class="bg-white sticky top-0 z-40 px-4 py-3 border-b border-slate-100">
         <div class="max-w-xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <img src="app/src/main/res/drawable/logo.png" alt="Logo" class="h-16 w-auto rounded-lg">
+                <img src="app/src/main/res/drawable/logo.png" alt="Logo" class="h-32 w-auto rounded-lg">
                 <div class="flex flex-col">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Funcionamos Todos os Dias</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Funcionamos de Terça à Domingo das 18:00 às 23:00</span>
                     <span class="text-sm font-bold text-slate-800 flex items-center gap-1">
                         Pedido Rápido Via WhatsApp <i class="fa-solid fa-chevron-down text-[10px] text-[#b91c1c]"></i>
                     </span>
@@ -170,6 +170,10 @@
                     <span>Subtotal</span>
                     <span id="cart-subtotal">R$ 0,00</span>
                 </div>
+                <div id="delivery-row" class="flex justify-between text-sm text-slate-500 hidden">
+                    <span>Taxa de Entrega</span>
+                    <span id="cart-delivery">R$ 0,00</span>
+                </div>
                 <div class="flex justify-between text-base font-extrabold text-slate-900 border-t pt-2 mt-2">
                     <span>Total</span>
                     <span id="cart-total-value" class="text-[#b91c1c]">R$ 0,00</span>
@@ -227,8 +231,17 @@
                         <select id="client-neighborhood" onchange="updateDeliveryFee()" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-bold appearance-none">
                             <option value="0">Selecione seu bairro...</option>
                             <option value="0">Centro - Grátis</option>
-                            <option value="5">Bairro A - R$ 5,00</option>
-                            <option value="10">Bairro B - R$ 10,00</option>
+                            <option value="5">Barbuda - R$ 5,00</option>
+                            <option value="10">Saco - R$ 10,00</option>
+                            <option value="15">Mundo Novo - R$ 10,00</option>
+                            <option value="20">Flexeiras - R$ 10,00</option>
+                            <option value="25">Piedade - R$ 10,00</option>
+                            <option value="30">Parque Boneville - R$ 10,00</option>
+                            <option value="35">Figueira - R$ 10,00</option>
+                            <option value="40">Bela Floresta - R$ 10,00</option>
+                            <option value="45">Vila Nova - R$ 10,00</option>
+                            <option value="50">Canal - R$ 10,00</option>
+                            <option value="55">Comendador Reis - R$ 10,00</option>
                         </select>
                     </div>
                     <div class="relative">
@@ -248,6 +261,15 @@
                 Confirmar e Enviar
             </button>
         </form>
+    </div>
+
+    <!-- Opções Modal -->
+    <div id="options-overlay" class="modal-overlay fixed inset-0 z-[60]" onclick="closeOptionsModal()"></div>
+    <div id="options-modal" class="fixed bottom-0 left-0 right-0 bg-white z-[70] rounded-t-[32px] p-8 shadow-2xl transition-transform transform translate-y-full max-h-[95vh] overflow-y-auto">
+        <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6"></div>
+        <div id="options-content" class="space-y-6">
+            <!-- Conteúdo injetado via JS -->
+        </div>
     </div>
 
     <script src="app.js"></script>
