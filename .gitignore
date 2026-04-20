@@ -1,23 +1,11 @@
-# Android/IntelliJ/VS Code
 .gradle/
 build/
 captures/
 local.properties
 .DS_Store
 *.iml
-.idea/
-!.idea/runConfigurations.xml
-.kotlin/
-
-# Web
+.idea/workspace.xml
+.idea/libraries/
+.idea/shelf/
+.idea/assetWizardSettings.xml
 node_modules/
-.npm
-dist/
-out/
-*.log
-
-# PWA
-sw.js.map
-
-# Diversos
-DelyveryApps/
