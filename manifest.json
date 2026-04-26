@@ -1,24 +1,40 @@
 {
-  "name": "Delicias da Tia Néa",
+  "name": "Delícias da Tia Néa",
   "short_name": "Tia Néa",
   "description": "Catálogo de produtos com carrinho e pedidos via WhatsApp",
-  "start_url": "index.html",
+  "id": "/",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "theme_color": "#b91c1c",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "logo.png",
+      "src": "app/src/main/res/drawable/logo.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "logo.png",
+      "src": "app/src/main/res/drawable/logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "app/src/main/res/drawable/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ver Cardápio",
+      "short_name": "Cardápio",
+      "description": "Abrir o cardápio de produtos",
+      "url": "./index.html",
+      "icons": [{ "src": "app/src/main/res/drawable/logo.png", "sizes": "192x192" }]
     }
   ]
 }

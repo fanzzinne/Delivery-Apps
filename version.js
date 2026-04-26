@@ -1,0 +1,1 @@
+const APP_VERSION = '2023.10.27.01';

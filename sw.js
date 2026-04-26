@@ -1,9 +1,11 @@
-const CACHE_NAME = 'catalogo-v1';
+importScripts('version.js');
+const CACHE_NAME = `catalogo-${APP_VERSION}`;
 const ASSETS = [
   './',
   './index.html',
   './app.js',
   './manifest.json',
+  './app/src/main/res/drawable/logo.png',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
@@ -17,6 +19,21 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// Limpeza de caches antigos
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
 // Intercepta as requisições para servir o cache quando offline
 self.addEventListener('fetch', (event) => {
   event.respondWith(
@@ -24,4 +41,11 @@ self.addEventListener('fetch', (event) => {
       return response || fetch(event.request);
     })
   );
+});
+
+// Permite forçar a ativação do novo service worker
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

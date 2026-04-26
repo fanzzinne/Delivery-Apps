@@ -8,6 +8,7 @@ const CONFIG = {
 // ESTADO DA APLICAÇÃO
 let allProducts = [];
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let userRatings = JSON.parse(localStorage.getItem('userRatings')) || {};
 let currentCategory = 'todos';
 let deliveryFee = 0;
 
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchProducts();
     updateCartUI();
     setupMask();
+    checkForUpdate();
 });
 
 // FORMATADORES
@@ -58,7 +60,9 @@ async function fetchProducts() {
             preço: formatPrice(p.preco || p.Preço || p.valor),
             imagem: p.imagem || p.Imagem || p.foto,
             ativo: p.ativo !== undefined ? (String(p.ativo).toUpperCase() === 'TRUE' || p.ativo === 1) : true,
-            opcoes: p.opcoes || [] // Espera um array de { nome: 'P', preço: 10 }
+            opcoes: p.opcoes || [],
+            rating: p.rating || (4.5 + Math.random() * 0.5).toFixed(1), // Mock de avaliação inicial
+            ratingCount: p.ratingCount || Math.floor(Math.random() * 40) + 10
         }));
 
         renderCategories();
@@ -76,9 +80,17 @@ function createProductCard(p) {
     const isAvailable = p.ativo;
     const hasOptions = p.opcoes && p.opcoes.length > 0;
     const card = document.createElement('div');
-    card.className = "product-card p-4 flex gap-4 relative";
+    card.className = "product-card p-4 flex gap-4 relative cursor-pointer";
+    card.onclick = (e) => {
+        if (!e.target.closest('button')) openOptions(p.id);
+    };
     card.innerHTML = `
         <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="product-rating-badge">
+                    <i class="fa-solid fa-star"></i> ${p.rating}
+                </span>
+            </div>
             <h3 class="font-bold text-base text-slate-800 leading-tight mb-1">${p.nome}</h3>
             <p class="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">${p.descrição}</p>
             <p class="text-[#b91c1c] font-extrabold text-base">${hasOptions ? 'A partir de ' : ''}${toBRL(p.preço)}</p>
@@ -153,6 +165,8 @@ function openOptions(id) {
     const p = allProducts.find(p => p.id === id);
     if (!p) return;
 
+    const userRating = userRatings[p.id] || 0;
+
     const content = document.getElementById('options-content');
     content.innerHTML = `
         <div class="flex gap-4 mb-6">
@@ -160,11 +174,30 @@ function openOptions(id) {
             <div>
                 <h3 class="font-bold text-lg">${p.nome}</h3>
                 <p class="text-xs text-slate-400">${p.descrição}</p>
+                <div class="mt-2 flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Avaliação</span>
+                    <div class="product-rating-badge">
+                        <i class="fa-solid fa-star"></i> ${p.rating}
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div class="bg-slate-50 p-6 rounded-[24px] border border-slate-100 text-center">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">O que você achou deste item?</p>
+            <div class="star-rating justify-center" id="star-container">
+                ${[1,2,3,4,5].map(num => `
+                    <i class="fa-solid fa-star ${num <= userRating ? 'active' : ''}" onclick="setRating('${p.id}', ${num})"></i>
+                `).join('')}
+            </div>
+            <p id="rating-status" class="text-[10px] font-medium text-slate-400 mt-3 italic">
+                ${userRating > 0 ? 'Obrigado por avaliar!' : 'Toque em uma estrela para avaliar'}
+            </p>
+        </div>
+
         <div class="space-y-3">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Escolha o tamanho:</p>
-            ${p.opcoes.map(opt => `
+            ${p.opcoes.length > 0 ? p.opcoes.map(opt => `
                 <button onclick="addToCart('${p.id}', null, '${opt.nome}', ${opt.preço})" class="w-full flex justify-between items-center p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-all border border-transparent hover:border-[#b91c1c]/20 group">
                     <span class="font-bold text-slate-700">${opt.nome}</span>
                     <div class="flex items-center gap-3">
@@ -172,12 +205,41 @@ function openOptions(id) {
                         <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 group-hover:text-[#b91c1c]"></i>
                     </div>
                 </button>
-            `).join('')}
+            `).join('') : `
+                <button onclick="addToCart('${p.id}', this)" class="w-full flex justify-between items-center p-4 bg-[#b91c1c] text-white rounded-2xl font-bold shadow-lg shadow-red-100">
+                    <span>Adicionar à Sacola</span>
+                    <span>${toBRL(p.preço)}</span>
+                </button>
+            `}
         </div>
     `;
 
     document.getElementById('options-modal').classList.remove('translate-y-full');
     document.getElementById('options-overlay').classList.add('open');
+}
+
+function setRating(productId, value) {
+    userRatings[productId] = value;
+    localStorage.setItem('userRatings', JSON.stringify(userRatings));
+
+    // Feedback visual imediato
+    const stars = document.querySelectorAll('#star-container i');
+    stars.forEach((star, index) => {
+        star.classList.toggle('active', index < value);
+    });
+
+    const status = document.getElementById('rating-status');
+    status.innerText = 'Obrigado por avaliar!';
+    status.classList.remove('text-slate-400');
+    status.classList.add('text-green-500');
+
+    // Aqui você poderia enviar a avaliação para o seu backend/API
+    console.log(`Produto ${productId} avaliado com ${value} estrelas`);
+
+    // Opcional: Atualizar o cardápio para refletir (embora a média global não mude só por uma pessoa no local)
+    setTimeout(() => {
+       renderProducts(allProducts);
+    }, 1000);
 }
 
 function closeOptionsModal() {
@@ -415,3 +477,68 @@ function renderMockData() {
     renderCategories();
     renderProducts(allProducts);
 }
+
+// ATUALIZAÇÃO AUTOMÁTICA DE VERSÃO
+async function checkForUpdate() {
+    try {
+        // Busca o arquivo de versão com cache-busting para garantir a versão do servidor
+        const response = await fetch(`version.js?t=${Date.now()}`);
+        const text = await response.text();
+        const serverVersionMatch = text.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+
+        if (serverVersionMatch && serverVersionMatch[1] !== APP_VERSION) {
+            console.log(`Nova versão disponível: ${serverVersionMatch[1]}`);
+            // Se o Service Worker já não detectou, forçamos a atualização
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration) {
+                registration.update();
+            }
+        }
+    } catch (e) {
+        console.log("Erro ao verificar versão");
+    }
+}
+
+// PWA INSTALLATION LOGIC
+let deferredPrompt;
+const installBanner = document.getElementById('install-banner');
+const installButton = document.getElementById('install-button');
+const installClose = document.getElementById('install-close');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Impede o Chrome 67 e anteriores de mostrar automaticamente o prompt
+    e.preventDefault();
+    // Guarda o evento para que possa ser disparado mais tarde.
+    deferredPrompt = e;
+    // Mostra o banner de instalação
+    if (localStorage.getItem('pwa-dismissed') !== 'true') {
+        installBanner.classList.remove('hidden');
+    }
+});
+
+if (installButton) {
+    installButton.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        // Mostra o prompt de instalação
+        deferredPrompt.prompt();
+        // Aguarda a resposta do usuário
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`Usuário escolheu: ${outcome}`);
+        // Limpa o prompt guardado
+        deferredPrompt = null;
+        // Esconde o banner
+        installBanner.classList.add('hidden');
+    });
+}
+
+if (installClose) {
+    installClose.addEventListener('click', () => {
+        installBanner.classList.add('hidden');
+        localStorage.setItem('pwa-dismissed', 'true');
+    });
+}
+
+window.addEventListener('appinstalled', (evt) => {
+    console.log('PWA instalado com sucesso');
+    installBanner.classList.add('hidden');
+});

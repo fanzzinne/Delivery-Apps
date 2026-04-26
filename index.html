@@ -78,9 +78,63 @@
         #floating-cart {
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
+        /* Sistema de Avaliação */
+        .star-rating {
+            display: flex;
+            gap: 4px;
+        }
+        .star-rating i {
+            font-size: 24px;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .star-rating i.active {
+            color: #fbce03;
+            transform: scale(1.1);
+        }
+        .product-rating-badge {
+            background: #fef9c3;
+            color: #854d0e;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
     </style>
 </head>
 <body class="bg-[#fafafa] text-slate-900 pb-28">
+
+    <!-- PWA Install Banner -->
+    <div id="install-banner" class="hidden bg-slate-900 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-[60] animate-in fade-in slide-in-from-top duration-500">
+        <div class="flex items-center gap-3">
+            <img src="app/src/main/res/drawable/logo.png" alt="Logo" class="w-8 h-8 rounded-lg">
+            <div>
+                <p class="text-xs font-bold">Instale nosso App</p>
+                <p class="text-[10px] opacity-70">Acesso rápido e offline</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="install-close" class="px-3 py-1 text-xs font-medium opacity-50">Depois</button>
+            <button id="install-button" class="bg-[#b91c1c] px-4 py-1.5 rounded-lg text-xs font-bold shadow-lg">Instalar</button>
+        </div>
+    </div>
+
+    <!-- PWA Update Toast -->
+    <div id="update-toast" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/10 w-[90%] max-w-sm animate-bounce">
+        <div class="bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-sm font-bold">Nova Versão!</p>
+            <p class="text-[10px] opacity-70">Atualize para ver as novidades.</p>
+        </div>
+        <button id="update-button" class="bg-white text-slate-900 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Atualizar</button>
+    </div>
 
     <!-- Header -->
     <header class="bg-white sticky top-0 z-40 px-4 py-3 border-b border-slate-100">
@@ -90,7 +144,7 @@
                 <div class="flex flex-col">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Funcionamos Todos os Dias</span>
                     <span class="text-sm font-bold text-slate-800 flex items-center gap-1">
-                        Delícias da Tia Néa <i class="fa-solid fa-chevron-down text-[12px] text-[#b91c1c]"></i>
+                        Pedido Rápido Via WhatsApp <i class="fa-solid fa-chevron-down text-[10px] text-[#b91c1c]"></i>
                     </span>
                     <a href="https://www.google.com/maps/place/Av.+Colorado,+441+-+Santa+M%C3%B4nica,+Guarapari+-+ES,+29221-040/@-20.621569,-40.4563873,17z/data=!3m1!4b1!4m6!3m5!1s0xb85a18318c9a57:0x5976a4df29ba3d4a!8m2!3d-20.621574!4d-40.4538124!16s%2Fg%2F11csc65wfs?entry=ttu&g_ep=EgoyMDI2MDQxNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="text-[11px] font-bold text-[#b91c1c] flex items-center gap-1 mt-1 hover:opacity-80 transition-opacity">
                         <i class="fa-solid fa-location-dot"></i> Ver Localização
@@ -107,6 +161,7 @@
     <main class="max-w-5xl mx-auto px-4">
         <!-- Busca -->
         <div class="mt-4 mb-6">
+            <label for="search-input" class="sr-only">Buscar no cardápio</label>
             <div class="relative group max-w-2xl mx-auto">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#b91c1c]"></i>
                 <input type="text" id="search-input" placeholder="Buscar no cardápio..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-[#b91c1c]/20 outline-none text-sm font-medium">
@@ -163,6 +218,7 @@
 
     <footer class="max-w-5xl mx-auto px-4 py-8 text-center text-slate-400 text-xs border-t border-slate-100 mt-10">
         <p>@2026 Todos os Direitos Reservados - Desenvolvido por: LE Design (21) 98813-7667</p>
+        <p class="mt-2 opacity-50">Versão: <span id="app-version">...</span></p>
     </footer>
 
     <!-- Botão Flutuante Carrinho -->
@@ -261,11 +317,18 @@
 
                 <div id="address-field" class="space-y-4">
                     <div class="relative">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Bairro/Pousada</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Bairro</label>
                         <select id="client-neighborhood" onchange="updateDeliveryFee()" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-bold appearance-none">
                             <option value="0">Selecione seu bairro...</option>
-                            <option value="0">Santa Mônica/Setiba/Perocão - Grátis</option>
-
+                            <option value="0">Santa Mônica - Grátis</option>
+                            <option value="0">Setiba - Grátis</option>
+                            <option value="0">Perocão - Grátis</option>
+                            <option value="5">Adalberto Simão Nader - R$ 5,00</option>
+                            <option value="7">Centro - R$ 7,00</option>
+                            <option value="7">Muquiçaba - R$ 7,00</option>
+                            <option value="8">Praia do Morro - R$ 8,00</option>
+                            <option value="10">Meaípe - R$ 10,00</option>
+                            <option value="12">Enseada Azul - R$ 12,00</option>
                         </select>
                     </div>
                     <div class="relative">
@@ -296,11 +359,50 @@
         </div>
     </div>
 
+    <script src="version.js"></script>
     <script src="app.js"></script>
     <script>
+        // Exibe a versão no footer
+        document.getElementById('app-version').innerText = typeof APP_VERSION !== 'undefined' ? APP_VERSION : '1.0.0';
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error', err));
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    // Verifica por atualizações a cada 30 min
+                    setInterval(() => { reg.update(); }, 1800000);
+
+                    const showUpdateBar = () => {
+                        const toast = document.getElementById('update-toast');
+                        const btn = document.getElementById('update-button');
+                        toast.classList.remove('hidden');
+                        btn.onclick = () => {
+                            if (reg.waiting) {
+                                reg.waiting.postMessage('SKIP_WAITING');
+                            }
+                        };
+                    };
+
+                    if (reg.waiting) {
+                        showUpdateBar();
+                    }
+
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateBar();
+                            }
+                        });
+                    });
+                });
+
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        window.location.reload();
+                        refreshing = true;
+                    }
+                });
             });
         }
     </script>
